@@ -4,4 +4,7 @@
   :main one.core
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.4.0"] [quil "1.5.0"] [incanter "1.2.3-SNAPSHOT"]])
+  :dependencies [[org.clojure/clojure "1.4.0"]
+                 [quil "1.5.0"]
+                 [incanter "1.2.3-SNAPSHOT"]
+                 [aleph "0.3.0-beta3"]])

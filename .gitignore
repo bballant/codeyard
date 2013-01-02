@@ -1,1 +1,8 @@
+.RData
+.Rhistory
+.cache
+.classpath
+.project
 .DS_Store
+target
+*.swp

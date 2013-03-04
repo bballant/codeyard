@@ -29,8 +29,8 @@ get.emailText <- function(path) {
 get.termDocumentMatrix <- function(doc.vec) {
   doc.corpus <- Corpus(VectorSource(doc.vec))
   control <- list(stopwords=TRUE, removePunctuation=TRUE, removeNumbers=TRUE, bounds=list(local = c(2,Inf))) 
-  doc.dtm <- TermDocumentMatrix(doc.corpus, control)
-  return(doc.dtm)
+  doc.tdm <- TermDocumentMatrix(doc.corpus, control)
+  return(doc.tdm)
 }
 
 get.df <- function(path) {
@@ -65,18 +65,6 @@ get.termFrequencyDataFrame <- function(text) {
   return(email.df)
 }
 
-# tdm is term document matrix
-get.emailClassification <- function(msg.tdm, training.df, prior=0.5, c=1e-6) {
-  msg.freq <- rowSums(as.matrix(msg.tdm))
-  msg.match <- intersect(names(msg.freq), training.df$term)
-  if (length(msg.match) > 1) {
-    return(prior * c^length(msg.freq))
-  } else {
-    match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
-    return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
-  }    
-}
-
 dostuff <- function() {
   spam.df <- get.termFrequencyDataFrame(get.emailText(spam.path))
   easyham.df <- get.termFrequencyDataFrame(get.emailText(easyham.path))
@@ -84,3 +72,83 @@ dostuff <- function() {
   head(spam.df[with(spam.df, order(-occurence)),])
   head(easyham.df[with(easyham.df, order(-occurence)),])
 }
+
+classify.email <- function(path, training.df, prior=0.5, c=1e-6) {
+  msg <- get.msg(path)
+  msg.tdm <- get.termDocumentMatrix(msg)
+  msg.freq <- rowSums(as.matrix(msg.tdm))
+  # Find intersections of words
+  msg.match <- intersect(names(msg.freq), training.df$term)
+  if(length(msg.match) < 1) {
+    return(prior*c^(length(msg.freq)))
+  } else {
+    match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
+    return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
+  }
+}
+
+# the next 2 are identical
+# tdm is term document matrix
+get.emailClassification <- function(msg.tdm, training.df, prior=0.5, c=1e-6) {
+  msg.freq <- rowSums(as.matrix(msg.tdm))
+  msg.match <- intersect(names(msg.freq), training.df$term)
+  if(length(msg.match) < 1) {
+    return(prior*c^(length(msg.freq)))
+  } else {
+    match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
+    return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
+  }    
+}
+
+classify.email2 <- function(msg.tdm, training.df, prior=0.5, c=1e-6) {
+  msg.freq <- rowSums(as.matrix(msg.tdm))
+  msg.match <- intersect(names(msg.freq), training.df$term)
+  if(length(msg.match) < 1) {
+    return(prior*c^(length(msg.freq)))
+  } else {
+    match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
+    return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
+  }
+}
+
+test.spamham <- function() {
+  spam.df <- get.termFrequencyDataFrame(get.emailText(spam.path))
+  easyham.df <- get.termFrequencyDataFrame(get.emailText(easyham.path))
+
+  hardham.docs <- dir(hardham.path)
+  hardham.docs <- hardham.docs[which(hardham.docs != "cmds")]
+
+  # hardham.tdms <- lapply(hardham.docs,
+  #   function(p) get.termDocumentMatrix(get.msg(paste(hardham.path, p, sep=""))))
+
+  # hardham.spamtest <- sapply(hardham.tdms,
+  #   function(p) classify.email2(p, training.df=spam.df))
+
+  # hardham.hamtest <- sapply(hardham.tdms,
+  #   function(p) classify.email2(p, training.df=easyham.df))
+
+  # hardham.spamtest <- sapply(hardham.docs,
+  #   function(p) classify.email(paste(hardham.path, p, sep=""), training.df=spam.df))
+
+  # hardham.hamtest <- sapply(hardham.docs,
+  #   function(p) classify.email(paste(hardham.path, p, sep=""), training.df=easyham.df))
+  
+  hardham.tdms <- lapply(hardham.docs,
+    function(p) get.termDocumentMatrix(get.msg(paste(hardham.path, p, sep=""))))
+
+  hardham.spamtest <- sapply(hardham.tdms,
+    function(p) get.emailClassification(p, training.df=spam.df))
+
+  hardham.hamtest <- sapply(hardham.tdms,
+    function(p) get.emailClassification(p, training.df=easyham.df))
+
+  hardham.res <- ifelse(hardham.spamtest > hardham.hamtest, TRUE, FALSE)
+  summary(hardham.res)
+}
+
+spam.classifier <- function(path) {
+  pr.spam <- classify.email(path, spam.df)
+  pr.ham <- classify.email(path, easyham.df)
+  return(c(pr.spam, pr.ham, ifelse(pr.spam > pr.ham, 1, 0)))
+}
+

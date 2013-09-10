@@ -7,4 +7,6 @@
 target
 *.swp
 *.data
+.settings
+.idea*
 scala/docintel/testdocs

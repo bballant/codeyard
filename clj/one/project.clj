@@ -6,5 +6,5 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [quil "1.5.0"]
-                 [incanter "1.2.3-SNAPSHOT"]
+                 [incanter "1.5.4"]
                  [aleph "0.3.0-beta3"]])

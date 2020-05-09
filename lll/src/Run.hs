@@ -21,6 +21,22 @@ type Longitude = Degrees
 data Meetup = Meetup { _name  :: String, _location :: (Latitude, Longitude)}
 makeLenses ''Meetup
 
+newBestBud :: Value
+newBestBud = [aesonQQ|
+  {
+    name: "James",
+    location: {city: "New Orleans"}
+  }
+|]
+
+oldBestBud :: Value
+oldBestBud = [aesonQQ|
+  {
+    name: "Rachel",
+    location: {city: "New York"}
+  }
+|]
+
 john :: Value
 john = [aesonQQ|
   {

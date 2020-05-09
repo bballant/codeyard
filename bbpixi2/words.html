@@ -1,0 +1,97 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Words</title>
+<body>
+<script src="pixi/pixi.js"></script>
+<script>
+
+//Aliases
+let Application = PIXI.Application,
+    Container = PIXI.Container,
+    loader = PIXI.loader,
+    resources = PIXI.loader.resources,
+    TextureCache = PIXI.utils.TextureCache,
+    Sprite = PIXI.Sprite,
+    Rectangle = PIXI.Rectangle;
+
+const _Width   = 360;
+const _Height  = 640;
+const _Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const _L = Array.from(_Letters);
+let _Style = new PIXI.TextStyle({
+     fontFamily: "Arial",
+     fontSize: 36,
+     fill: "white",
+     stroke: '#ff3300',
+     strokeThickness: 4,
+     dropShadow: true,
+     dropShadowColor: "#000000",
+     dropShadowBlur: 4,
+     dropShadowAngle: Math.PI / 6,
+     dropShadowDistance: 6,
+ });
+
+//Create a Pixi Application
+let app = new Application({
+    width: 360,
+    height: 640,
+    backgroundColor: 0x1099bb,
+    antialiasing: true,
+    transparent: false,
+    resolution: 1
+  }
+);
+
+//Add the canvas that Pixi automatically created for you to the HTML document
+document.body.appendChild(app.view);
+
+//load a JSON file and run the `setup` function when it's done
+loader
+  //.add("images/treasureHunter.json")
+  .load(setup);
+
+ function drawLettersAt(letters, x, y) {
+     const ww = 9;
+     for (i = 0; i < letters.length; i++) {
+         const xv = i % ww;
+         const yv = Math.floor(i / ww)
+         let s = letters[i];
+         s.position.set(x + (xv * 32), y + (yv * 32));
+         app.stage.addChild(s);
+     }
+ }
+
+ function randomizeList(list) {
+     function innerRand(acc, ls) {
+         const len = ls.length
+         if (len == 0) {
+             return acc;
+         }
+         else {
+             const randVal = randomInt(0, len - 1);
+             return innerRand(
+                 acc.concat([ls[randVal]]),
+                 ls.slice(0, randVal).concat(ls.slice(randVal+1))
+             );
+         }
+     }
+     return innerRand([], list);
+ }
+
+function setup() {
+     const word = "Brian";
+     let ls = Array.from(word);
+     let lsRand = randomizeList(ls);
+     let letters = lsRand.map ( l => { return new PIXI.Text(l, _Style); })
+     drawLettersAt(letters, 20, 20);
+}
+
+//The `randomInt` helper function
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+</script>
+</body>
+
+
